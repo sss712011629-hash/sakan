@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>نظافة السكن</title>
+<meta name="theme-color" content="#0FA394">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="نظافة السكن">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F7F6;--card:#fff;--ink:#16211F;--muted:#6B7A77;--line:#E3EAE8;--brand:#0FA394;--brand-soft:#E0F5F2;--warn:#E8833A;--warn-soft:#FDF0E6;--bad:#D9485F;--bad-soft:#FBE9EC;--ok:#1E9E5A;--ok-soft:#E5F6EC}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Readex Pro",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;min-height:100vh}
+.wrap{max-width:560px;margin:0 auto;padding:calc(16px + env(safe-area-inset-top)) 16px 96px}
+header{display:flex;align-items:center;justify-content:space-between;margin:4px 0 14px}
+header h1{font-size:22px;font-weight:700}
+header .who{font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.hero{background:linear-gradient(135deg,#0FA394,#0B7F74);color:#fff;border:none;padding:20px}
+.hero .lbl{opacity:.85;font-size:14px}
+.hero .name{font-size:40px;font-weight:700;line-height:1.2;margin:4px 0}
+.hero .date{opacity:.85;font-size:14px}
+.hero .status{display:inline-block;margin-top:10px;background:rgba(255,255,255,.18);border-radius:20px;padding:5px 12px;font-size:14px;font-weight:600}
+.hero.me{background:linear-gradient(135deg,#E8833A,#C9661F)}
+.hero.done{background:linear-gradient(135deg,#1E9E5A,#167846)}
+h2{font-size:17px;font-weight:600;margin-bottom:10px}
+.sec{font-size:13px;font-weight:600;color:var(--brand);margin:14px 0 6px}
+.task{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+.task:last-child{border-bottom:none}
+.box{width:24px;height:24px;border-radius:7px;border:2px solid #B9C6C3;flex:none;display:grid;place-items:center}
+.task.on .box{background:var(--brand);border-color:var(--brand)}
+.task.on .box::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.task.on .t{color:var(--muted);text-decoration:line-through}
+.prog{height:8px;background:var(--line);border-radius:8px;overflow:hidden;margin:6px 0 4px}
+.prog i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+.small{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:14px;padding:13px 18px;font:600 16px "Readex Pro";cursor:pointer;background:var(--brand);color:#fff;width:100%}
+.btn.sec2{background:var(--brand-soft);color:var(--brand)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn+.btn{margin-top:8px}
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:var(--line);cursor:pointer}
+.ph{position:relative}
+.ph button{position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:13px;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer}
+textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;font:400 15px "Readex Pro";resize:vertical;min-height:60px;background:#FAFCFB}
+.row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.pill{font-size:12px;font-weight:600;border-radius:12px;padding:3px 10px}
+.p-ok{background:var(--ok-soft);color:var(--ok)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-wait{background:var(--warn-soft);color:var(--warn)}.p-today{background:var(--brand-soft);color:var(--brand)}
+.log{border-bottom:1px solid var(--line);padding:12px 0}
+.log:last-child{border-bottom:none}
+.log .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.log .photos{grid-template-columns:repeat(4,1fr)}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;max-width:140px;border:none;background:none;font:500 12px "Readex Pro";color:var(--muted);padding:6px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button svg{width:22px;height:22px}
+nav button.act{color:var(--brand)}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.names button{border:2px solid var(--line);background:#fff;border-radius:14px;padding:14px;font:600 17px "Readex Pro";cursor:pointer;color:var(--ink)}
+.names button.sel{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+.modal{position:fixed;inset:0;background:rgba(10,20,18,.5);display:none;align-items:flex-end;justify-content:center;z-index:9}
+.modal.open{display:flex}
+.sheet{background:#fff;border-radius:22px 22px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:560px;max-height:88vh;overflow:auto}
+.big{max-width:100%;border-radius:14px}
+.note{background:var(--warn-soft);color:#8A4A15;border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.err{background:var(--bad-soft);color:var(--bad)}
+input[type=date],select{font:500 15px "Readex Pro";border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+.ord{display:flex;align-items:center;gap:8px;padding:6px 0}
+.ord b{width:26px;text-align:center;color:var(--brand)}
+.ord button{border:1px solid var(--line);background:#fff;border-radius:8px;width:34px;height:32px;cursor:pointer;font-size:16px}
+.hide{display:none!important}
+.toast{position:fixed;top:calc(14px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:10;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.ok-line{color:var(--ok);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <header><h1>🧹 نظافة السكن</h1><span class="who" id="whoBtn">أنا: —</span></header>
+ <div id="netNote" class="note hide"></div>
+
+ <section id="v-nohouse" class="hide">
+  <div class="card"><h2>افتح التطبيق من رابط السكن</h2><div class="small">هذا التطبيق خاص بسكنكم. اطلب الرابط من صاحب السكن وافتحه مرة وحدة، وبعدها يفتح معك مباشرة.</div></div>
+ </section>
+
+ <section id="v-today">
+  <div class="card hero" id="hero">
+   <div class="lbl">دور النظافة اليوم</div>
+   <div class="name" id="todayName">…</div>
+   <div class="date" id="todayDate"></div>
+   <div class="status" id="todayStatus">…</div>
+  </div>
+  <div class="card hide" id="notifCard">
+   <h2>🔔 فعّل الإشعارات</h2>
+   <div class="small" style="margin-bottom:10px" id="notifTxt">عشان يوصلك تنبيه كل يوم بمن عليه الدور، وتنبيه لما أحد يخلّص النظافة.</div>
+   <button class="btn" id="notifBtn">فعّل الإشعارات</button>
+  </div>
+  <div class="card">
+   <h2>قائمة التنظيف</h2>
+   <div class="prog"><i id="progBar"></i></div>
+   <div class="small" id="progTxt"></div>
+   <div id="taskList"></div>
+  </div>
+  <div class="card">
+   <h2>التوثيق بالصور</h2>
+   <div class="small">صوّر الأماكن بعد التنظيف (المطبخ، الحمام، الصالة…). لازم صورة وحدة على الأقل.</div>
+   <div class="photos" id="photoGrid"></div>
+   <input type="file" id="fileIn" accept="image/*" multiple class="hide">
+   <button class="btn sec2" id="addPhoto">📷 صوّر / أضف صور</button>
+   <div class="small" id="upMsg" style="margin-top:6px"></div>
+  </div>
+  <div class="card">
+   <h2>ملاحظة (اختياري)</h2>
+   <textarea id="noteIn" placeholder="مثلاً: الثلاجة تحتاج تنظيف عميق، أكياس الزبالة خلصت…"></textarea>
+   <div style="height:10px"></div>
+   <button class="btn" id="doneBtn">✅ تم التنظيف</button>
+   <div class="small" id="doneHint" style="margin-top:6px;text-align:center"></div>
+  </div>
+ </section>
+
+ <section id="v-sched" class="hide">
+  <div class="card"><h2>جدول الأدوار</h2><div id="schedList"></div></div>
+ </section>
+
+ <section id="v-hist" class="hide">
+  <div class="card"><h2>السجل</h2><div id="histList"><div class="small">…</div></div></div>
+ </section>
+
+ <section id="v-set" class="hide">
+  <div class="card">
+   <h2>أنا مين؟</h2>
+   <div class="names" id="meNames"></div>
+   <div class="small" style="margin-top:8px">يتحفظ على جوالك، عشان يطلع لك «دورك اليوم» وتوصلك تنبيهاتك.</div>
+  </div>
+  <div class="card">
+   <h2>الإشعارات</h2>
+   <div class="small" id="notifState" style="margin-bottom:10px"></div>
+   <button class="btn sec2" id="notifBtn2">فعّل / حدّث الإشعارات</button>
+  </div>
+  <div class="card">
+   <h2>ترتيب الأدوار</h2>
+   <label class="small">أول يوم في الجدول: </label><input type="date" id="startIn"><br><br>
+   <div id="ordList"></div><br>
+   <label class="small">ساعة التنبيه الصباحي: </label><select id="hourIn"></select>
+   <div class="small" style="margin-top:4px">(التنبيه يطلع من الخادم الساعة ٩ الصبح بتوقيت السعودية)</div><br>
+   <button class="btn" id="saveCfg">حفظ الترتيب</button>
+  </div>
+  <div class="card">
+   <h2>رابط السكن</h2>
+   <div class="small" style="margin-bottom:8px">أرسل هذا الرابط لأصحابك في السكن فقط.</div>
+   <button class="btn sec2" id="copyLink">📋 انسخ رابط السكن</button>
+  </div>
+ </section>
+</div>
+
+<nav id="nav">
+ <button data-v="today" class="act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>اليوم</button>
+ <button data-v="sched"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>الجدول</button>
+ <button data-v="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>السجل</button>
+ <button data-v="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>الإعدادات</button>
+</nav>
+
+<div class="modal" id="imgModal"><div class="sheet"><img class="big" id="bigImg" alt=""><div style="height:10px"></div><button class="btn sec2" id="closeImg">إغلاق</button></div></div>
+<div class="modal" id="iosModal"><div class="sheet">
+ <h2>الإشعارات في الآيفون</h2>
+ <div class="small" style="color:var(--ink);line-height:1.9">
+ الآيفون يرسل إشعارات المواقع بس إذا أضفت التطبيق للشاشة الرئيسية:<br>
+ ١. اضغط زر المشاركة <b>⬆️</b> تحت في سفاري<br>
+ ٢. اختر <b>«إضافة إلى الشاشة الرئيسية»</b><br>
+ ٣. افتح التطبيق من الأيقونة الجديدة واضغط «فعّل الإشعارات»</div><br>
+ <button class="btn sec2" id="closeIos">تمام</button></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { firebaseConfig, vapidKey, defaults as DEF } from "./config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeFirestore, persistentLocalCache, doc, setDoc, getDoc, deleteDoc, collection, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
+const TASKS=[
+ ["المطبخ",[["k1","غسل الصحون والقدور وترتيبها"],["k2","مسح الرخام وسطح المطبخ"],["k3","تنظيف الموقد (الغاز) والفرن من الخارج"],["k4","تنظيف المغسلة والحنفية"],["k5","مسح الطاولة والكراسي"]]],
+ ["الحمّام",[["b1","تنظيف المرحاض بالمطهّر"],["b2","تنظيف المغسلة والمراية"],["b3","تنظيف الدش / البانيو"],["b4","مسح أرضية الحمام"]]],
+ ["الأرضيات والصالة",[["f1","كنس كل الغرف المشتركة"],["f2","مسح الأرضيات"],["f3","ترتيب الصالة والكنب"],["f4","مسح الغبار عن الأسطح والتلفزيون"]]],
+ ["الزبالة والعام",[["g1","تفريغ كل سلال الزبالة وتغيير الأكياس"],["g2","رمي الزبالة برا السكن"],["g3","مسح مقابض الأبواب والمفاتيح"],["g4","تهوية السكن (فتح الشبابيك)"]]],
+];
+const WEEKLY=[["w1","تنظيف الثلاجة ورمي الأكل الخربان"],["w2","غسل سجاد الحمام / المناشف المشتركة"]];
+const ALL=TASKS.flatMap(s=>s[1]);
+const $=id=>document.getElementById(id);
+const AR="٠١٢٣٤٥٦٧٨٩",ar=s=>String(s).replace(/\d/g,d=>AR[d]);
+const DAYS=["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+// ---------- house code (from link #CODE, then remembered)
+let house=(location.hash||"").replace(/^#(h=)?/,"").trim();
+if(/^[A-Za-z0-9_-]{12,}$/.test(house))LS.set("sakan_house",house);else house=LS.get("sakan_house")||"";
+const H=p=>"houses/"+house+"/"+p;
+
+let cfg={...DEF},me=LS.get("sakan_me"),logs={},photos={},fs=null,messaging=null,pending=false,online=false;
+const pad=n=>String(n).padStart(2,"0");
+const key=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const today=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())};
+const dayDiff=(a,b)=>Math.round((a-b)/864e5);
+function whoOn(d){const i=dayDiff(d,parse(cfg.start));if(i<0)return null;return cfg.order[((i%4)+4)%4]}
+const fmt=d=>DAYS[d.getDay()]+" "+ar(d.getDate())+"/"+ar(d.getMonth()+1);
+const tm=iso=>ar(new Date(iso).toLocaleTimeString("ar",{hour:"numeric",minute:"2-digit"}));
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2600)}
+function note(t,err){const e=$("netNote");if(!t){e.classList.add("hide");return}e.textContent=t;e.classList.toggle("err",!!err);e.classList.remove("hide")}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---------- views
+const VIEWS=["today","sched","hist","set"];
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>show(b.dataset.v));
+function show(v){document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("act",x.dataset.v===v));VIEWS.forEach(x=>$("v-"+x).classList.toggle("hide",x!==v));window.scrollTo(0,0)}
+$("whoBtn").onclick=()=>show("set");
+
+// ---------- today
+const extraFor=d=>d.getDay()===5?WEEKLY:[];
+function renderToday(){
+ const d=today(),k=key(d),who=whoOn(d),L=logs[k]||{};
+ $("todayName").textContent=who||"يبدأ "+fmt(parse(cfg.start));$("todayName").style.fontSize=who?"":"28px";
+ $("todayDate").textContent=fmt(d);
+ const mine=!!me&&me===who;
+ $("hero").classList.toggle("me",mine&&!L.done);$("hero").classList.toggle("done",!!L.done);
+ $("todayStatus").textContent=L.done?"✅ تمّت النظافة"+(L.doneAt?" الساعة "+tm(L.doneAt):""):mine?"👈 اليوم دورك أنت":who?"لم تكتمل بعد":"";
+ const done=L.tasks||{},extra=extraFor(d);
+ let h="";TASKS.forEach(([sec,items])=>{h+=`<div class="sec">${sec}</div>`;items.forEach(([id,t])=>h+=row(id,t,done))});
+ if(extra.length){h+=`<div class="sec">مهام الجمعة الأسبوعية</div>`;extra.forEach(([id,t])=>h+=row(id,t,done))}
+ $("taskList").innerHTML=h;
+ const list=[...ALL,...extra],n=list.filter(([id])=>done[id]).length;
+ $("progBar").style.width=(100*n/list.length)+"%";$("progTxt").textContent=`${ar(n)} من ${ar(list.length)} مهمة`;
+ $("taskList").querySelectorAll(".task").forEach(el=>el.onclick=()=>toggleTask(el.dataset.id));
+ const ph=L.photos||[];
+ $("photoGrid").innerHTML=ph.map((pid,i)=>`<div class="ph"><img src="${photos[pid]||""}" data-p="${pid}" alt="صورة توثيق">${L.done?"":`<button data-del="${i}" aria-label="حذف">×</button>`}</div>`).join("");
+ $("photoGrid").querySelectorAll("img").forEach(im=>im.onclick=()=>openImg(photos[im.dataset.p]));
+ $("photoGrid").querySelectorAll("[data-del]").forEach(b=>b.onclick=e=>{e.stopPropagation();delPhoto(+b.dataset.del)});
+ if(document.activeElement!==$("noteIn"))$("noteIn").value=L.note||"";
+ $("noteIn").disabled=!!L.done;$("addPhoto").disabled=!!L.done||!online;
+ $("doneBtn").disabled=!!L.done||!ph.length||pending||!online;
+ $("doneHint").textContent=L.done?("وثّقها "+(L.who||who)+" · "+ar(ph.length)+" صور"):!ph.length?"أضف صورة وحدة على الأقل عشان تقدر تأكد":"";
+ loadPhotos(ph);
+}
+const row=(id,t,done)=>`<div class="task ${done[id]?"on":""}" data-id="${id}"><span class="box"></span><span class="t">${t}</span></div>`;
+
+let chain=Promise.resolve();
+const queue=fn=>(chain=chain.then(fn,fn));
+async function writeToday(patch){
+ if(!fs){toast("غير متصل");return false}
+ const k=key(today()),cur=logs[k]||{},next={...JSON.parse(JSON.stringify(cur)),...patch,who:whoOn(today()),date:k};
+ logs[k]=next;renderAll();
+ try{await setDoc(doc(fs,H("logs/"+k)),next);return true}catch(e){console.error(e);toast("تعذّر الحفظ، جرّب مرة ثانية");return false}
+}
+function toggleTask(id){const L=logs[key(today())]||{};if(L.done)return;const t={...(L.tasks||{})};if(t[id])delete t[id];else t[id]=true;queue(()=>writeToday({tasks:t}))}
+let noteT;$("noteIn").oninput=()=>{clearTimeout(noteT);noteT=setTimeout(()=>queue(()=>writeToday({note:$("noteIn").value.slice(0,500)})),900)};
+
+// photos: compressed JPEG stored as one Firestore doc each
+$("addPhoto").onclick=()=>$("fileIn").click();
+$("fileIn").onchange=async e=>{
+ const files=[...e.target.files].slice(0,8);e.target.value="";if(!files.length)return;
+ $("addPhoto").disabled=true;let ok=0;
+ for(const [i,f] of files.entries()){
+  $("upMsg").textContent=`جاري رفع ${ar(i+1)} من ${ar(files.length)}…`;
+  try{const data=await shrink(f);const id=key(today())+"_"+Date.now().toString(36)+i;
+   await setDoc(doc(fs,H("photos/"+id)),{date:key(today()),data,at:new Date().toISOString(),by:me||""});
+   photos[id]=data;const L=logs[key(today())]||{};await queue(()=>writeToday({photos:[...(L.photos||[]),id]}));ok++}
+  catch(err){console.error(err);toast("تعذّر رفع صورة")}
+ }
+ $("upMsg").textContent=ok?`تم رفع ${ar(ok)} صورة ✓`:"";renderAll();
+};
+function shrink(file){return new Promise((res,rej)=>{const img=new Image();const u=URL.createObjectURL(file);img.onload=()=>{let m=1100,q=.72,out;const c=document.createElement("canvas");
+ for(let k=0;k<4;k++){const s=Math.min(1,m/Math.max(img.width,img.height));c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);out=c.toDataURL("image/jpeg",q);if(out.length<700000)break;m*=.8;q-=.08}
+ URL.revokeObjectURL(u);res(out)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("img"))};img.src=u})}
+function delPhoto(i){const L=logs[key(today())]||{};const ph=[...(L.photos||[])];const [id]=ph.splice(i,1);queue(()=>writeToday({photos:ph}));if(id)deleteDoc(doc(fs,H("photos/"+id))).catch(()=>{})}
+const loading=new Set();
+function loadPhotos(ids){ids.forEach(id=>{if(photos[id]||loading.has(id)||!fs)return;loading.add(id);getDoc(doc(fs,H("photos/"+id))).then(s=>{if(s.exists()){photos[id]=s.data().data;renderAll()}}).catch(()=>{}).finally(()=>loading.delete(id))})}
+$("doneBtn").onclick=async()=>{const L=logs[key(today())]||{};if(!(L.photos||[]).length)return;pending=true;renderAll();
+ const ok=await queue(()=>writeToday({done:true,doneAt:new Date().toISOString(),doneBy:me||"",notified:false,note:$("noteIn").value.slice(0,500)}));
+ pending=false;renderAll();if(ok)toast("يعطيك العافية! ✅ بيوصل إشعار للكل")};
+function openImg(src){if(!src)return;$("bigImg").src=src;$("imgModal").classList.add("open")}
+$("closeImg").onclick=()=>$("imgModal").classList.remove("open");
+$("imgModal").onclick=e=>{if(e.target.id==="imgModal")$("imgModal").classList.remove("open")};
+
+// ---------- schedule
+function renderSched(){
+ const d0=today();let h="";
+ for(let i=0;i<14;i++){const d=addDays(d0,i),w=whoOn(d),L=logs[key(d)]||{};
+  const tag=i===0?(L.done?'<span class="pill p-ok">تمّت</span>':'<span class="pill p-today">اليوم</span>'):i===1?'<span class="pill p-wait">بكرة</span>':"";
+  h+=`<div class="row"><span>${fmt(d)}</span><span style="display:flex;gap:8px;align-items:center"><b${me&&me===w?' style="color:var(--warn)"':""}>${w||"—"}</b>${tag}</span></div>`}
+ $("schedList").innerHTML=h;
+}
+// ---------- history
+function renderHist(){
+ const d0=today(),s=parse(cfg.start);let h="";const need=[];
+ for(let i=0;i<30;i++){const d=addDays(d0,-i);if(d<s)break;const k=key(d),L=logs[k]||{},w=whoOn(d);
+  const pill=L.done?'<span class="pill p-ok">✓ تمّت</span>':i===0?'<span class="pill p-wait">قيد التنفيذ</span>':'<span class="pill p-bad">✗ ما تمّت</span>';
+  const ph=L.photos||[];const n=L.tasks?Object.keys(L.tasks).length:0;
+  h+=`<div class="log"><div class="top"><span><b>${esc(L.who||w)}</b> · <span class="small">${fmt(d)}</span></span>${pill}</div>`;
+  if(L.done||ph.length)h+=`<div class="small">${ar(n)} مهمة · ${ar(ph.length)} صور${L.doneAt?" · الساعة "+tm(L.doneAt):""}</div>`;
+  if(L.note)h+=`<div class="small" style="color:var(--ink);margin-top:4px">📝 ${esc(L.note)}</div>`;
+  if(ph.length&&i<10){h+=`<div class="photos">${ph.map(p=>`<img src="${photos[p]||""}" data-p="${p}" alt="توثيق">`).join("")}</div>`;need.push(...ph)}
+  h+=`</div>`}
+ $("histList").innerHTML=h||'<div class="small">ما فيه سجل بعد — الجدول يبدأ '+fmt(s)+'</div>';
+ $("histList").querySelectorAll("img").forEach(im=>im.onclick=()=>openImg(photos[im.dataset.p]));
+ if(!$("v-hist").classList.contains("hide"))loadPhotos(need);
+}
+document.querySelector('nav [data-v="hist"]').addEventListener("click",()=>setTimeout(renderHist,0));
+
+// ---------- settings
+let draft=[...cfg.order],cfgInit=false;
+function renderSet(){
+ $("whoBtn").textContent="أنا: "+(me||"—");
+ $("meNames").innerHTML=cfg.order.map(n=>`<button class="${n===me?"sel":""}" data-n="${n}">${n}</button>`).join("");
+ $("meNames").querySelectorAll("button").forEach(b=>b.onclick=()=>setMe(b.dataset.n));
+ if(!cfgInit){cfgInit=true;draft=[...cfg.order];$("startIn").value=cfg.start;$("hourIn").innerHTML=Array.from({length:17},(_,i)=>i+5).map(h=>`<option value="${h}">${ar(h)}:٠٠</option>`).join("");$("hourIn").value=cfg.hour}
+ $("ordList").innerHTML=draft.map((n,i)=>`<div class="ord"><b>${ar(i+1)}</b><span style="flex:1">${n}</span><button data-u="${i}">↑</button><button data-d="${i}">↓</button></div>`).join("");
+ $("ordList").querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>mv(+b.dataset.u,-1));
+ $("ordList").querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>mv(+b.dataset.d,1));
+ const st=("Notification" in window)?Notification.permission:"unsupported";
+ $("notifState").innerHTML=LS.get("sakan_token")&&st==="granted"?'<span class="ok-line">✓ الإشعارات مفعّلة على هذا الجوال</span>':st==="denied"?"الإشعارات مرفوضة من إعدادات المتصفح — فعّلها من إعدادات الموقع.":"الإشعارات غير مفعّلة على هذا الجوال.";
+ $("notifCard").classList.toggle("hide",!!(LS.get("sakan_token")&&st==="granted")||!house);
+}
+function mv(i,dir){const j=i+dir;if(j<0||j>=draft.length)return;[draft[i],draft[j]]=[draft[j],draft[i]];renderSet()}
+$("saveCfg").onclick=async()=>{const c={start:$("startIn").value||cfg.start,order:draft,hour:+$("hourIn").value||9};try{await setDoc(doc(fs,H("config/rota")),c);cfg=c;renderAll();toast("تم الحفظ ✓")}catch(e){toast("تعذّر الحفظ")}};
+function setMe(n){me=n;LS.set("sakan_me",n);renderAll();if(LS.get("sakan_token"))saveToken(LS.get("sakan_token"))}
+$("copyLink").onclick=async()=>{const u=location.origin+location.pathname+"#"+house;try{await navigator.clipboard.writeText(u);toast("تم نسخ الرابط ✓")}catch(e){prompt("انسخ الرابط:",u)}};
+
+// ---------- notifications (FCM)
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent),standalone=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+async function enableNotif(){
+ if(!me){toast("اختر اسمك أول");show("set");return}
+ if(isIOS&&!standalone){$("iosModal").classList.add("open");return}
+ if(!("Notification" in window)||!(await isSupported().catch(()=>false))){toast("المتصفح هذا ما يدعم الإشعارات");return}
+ const p=await Notification.requestPermission();if(p!=="granted"){toast("ما تم السماح بالإشعارات");renderSet();return}
+ try{const swUrl="firebase-messaging-sw.js?cfg="+encodeURIComponent(JSON.stringify(firebaseConfig));
+  const reg=await navigator.serviceWorker.register(swUrl);
+  const t=await getToken(messaging,{vapidKey,serviceWorkerRegistration:reg});
+  if(!t)throw new Error("no token");await saveToken(t);toast("✓ تم تفعيل الإشعارات")}
+ catch(e){console.error(e);toast("تعذّر تفعيل الإشعارات")}
+ renderSet();
+}
+async function saveToken(t){LS.set("sakan_token",t);try{await setDoc(doc(fs,H("tokens/"+t.slice(0,140).replace(/[^A-Za-z0-9_-]/g,"_"))),{token:t,name:me||"",at:new Date().toISOString(),ua:navigator.userAgent.slice(0,120)})}catch(e){console.error(e)}}
+$("notifBtn").onclick=enableNotif;$("notifBtn2").onclick=enableNotif;$("closeIos").onclick=()=>$("iosModal").classList.remove("open");
+
+function renderAll(){renderToday();renderSched();renderHist();renderSet()}
+
+// ---------- boot
+if(!house){VIEWS.forEach(x=>$("v-"+x).classList.add("hide"));$("v-nohouse").classList.remove("hide");$("nav").classList.add("hide")}
+else{
+ renderAll();
+ if(firebaseConfig.apiKey==="PASTE"){note("التطبيق لسه ما انربط بقاعدة البيانات.",true)}
+ else{
+  const app=initializeApp(firebaseConfig);
+  fs=initializeFirestore(app,{localCache:persistentLocalCache()});
+  isSupported().then(s=>{if(s)messaging=getMessaging(app)}).catch(()=>{});
+  const auth=getAuth(app);
+  const timer=setTimeout(()=>note("ما قدرنا نوصل للبيانات بعد… تأكد من الإنترنت."),10000);
+  signInAnonymously(auth).catch(e=>{clearTimeout(timer);note("تعذّر الاتصال: "+(e.code||""),true)});
+  onAuthStateChanged(auth,u=>{if(!u||online)return;online=true;
+   onSnapshot(doc(fs,H("config/rota")),s=>{if(s.exists()){const c=s.data();cfg={start:c.start||DEF.start,order:Array.isArray(c.order)&&c.order.length===4?c.order:DEF.order,hour:c.hour||9};cfgInit=false}renderAll()},()=>{});
+   const from=key(addDays(today(),-35));
+   onSnapshot(query(collection(fs,H("logs")),where("date",">=",from)),s=>{if(!s.metadata.fromCache){clearTimeout(timer);note("")}const m={};s.docs.forEach(x=>m[x.id]=x.data());logs=m;renderAll()},e=>{clearTimeout(timer);note("انقطع الاتصال بالبيانات.",true);console.error(e)});
+   renderAll();
+   if(messaging)onMessage(messaging,p=>toast((p.notification&&p.notification.title)||"تنبيه"));
+  });
+ }
+}
+setInterval(()=>{const k=key(today());if(k!==renderAll.k){renderAll.k=k;renderAll()}},60000);
+</script>
+</body>
+</html>
