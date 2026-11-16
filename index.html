@@ -96,9 +96,10 @@ input[type=date],select{font:500 15px "Readex Pro";border:1px solid var(--line);
    <div class="status" id="todayStatus">…</div>
   </div>
   <div class="card hide" id="notifCard">
-   <h2>🔔 فعّل الإشعارات</h2>
-   <div class="small" style="margin-bottom:10px" id="notifTxt">عشان يوصلك تنبيه كل يوم بمن عليه الدور، وتنبيه لما أحد يخلّص النظافة.</div>
+   <h2>🔔 فعّل الإشعارات (مرة وحدة)</h2>
+   <div class="small" style="margin-bottom:10px">يوصلك تنبيه كل يوم الصبح بمن عليه الدور، وتنبيه لما أحد يخلّص النظافة.</div>
    <button class="btn" id="notifBtn">فعّل الإشعارات</button>
+   <button class="btn sec2" id="notifDone">✓ فعّلتها</button>
   </div>
   <div class="card">
    <h2>قائمة التنظيف</h2>
@@ -140,7 +141,7 @@ input[type=date],select{font:500 15px "Readex Pro";border:1px solid var(--line);
   <div class="card">
    <h2>الإشعارات</h2>
    <div class="small" id="notifState" style="margin-bottom:10px"></div>
-   <button class="btn sec2" id="notifBtn2">فعّل / حدّث الإشعارات</button>
+   <button class="btn sec2" id="notifBtn2">طريقة تفعيل الإشعارات</button>
   </div>
   <div class="card">
    <h2>ترتيب الأدوار</h2>
@@ -166,22 +167,23 @@ input[type=date],select{font:500 15px "Readex Pro";border:1px solid var(--line);
 </nav>
 
 <div class="modal" id="imgModal"><div class="sheet"><img class="big" id="bigImg" alt=""><div style="height:10px"></div><button class="btn sec2" id="closeImg">إغلاق</button></div></div>
-<div class="modal" id="iosModal"><div class="sheet">
- <h2>الإشعارات في الآيفون</h2>
- <div class="small" style="color:var(--ink);line-height:1.9">
- الآيفون يرسل إشعارات المواقع بس إذا أضفت التطبيق للشاشة الرئيسية:<br>
- ١. اضغط زر المشاركة <b>⬆️</b> تحت في سفاري<br>
- ٢. اختر <b>«إضافة إلى الشاشة الرئيسية»</b><br>
- ٣. افتح التطبيق من الأيقونة الجديدة واضغط «فعّل الإشعارات»</div><br>
- <button class="btn sec2" id="closeIos">تمام</button></div></div>
+<div class="modal" id="ntfyModal"><div class="sheet">
+ <h2>🔔 تفعيل الإشعارات</h2>
+ <div class="small" style="color:var(--ink);line-height:2">
+ ١. نزّل تطبيق <b>ntfy</b> المجاني:<br>
+ &nbsp;&nbsp;<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy">أندرويد (Google Play)</a> · <a href="https://apps.apple.com/app/ntfy/id1625396347">آيفون (App Store)</a><br>
+ ٢. ارجع هنا واضغط الزر الأخضر تحت، وبيفتح لك ntfy ويشترك تلقائيًا.<br>
+ ٣. إذا ما فتح تلقائيًا: افتح ntfy ← اضغط <b>+</b> ← الصق اسم القناة:</div>
+ <div style="display:flex;gap:8px;margin:8px 0 12px"><code id="topicTxt" style="flex:1;background:var(--bg);border-radius:10px;padding:10px;font-size:13px;direction:ltr;overflow:auto"></code><button class="btn sec2" style="width:auto" id="copyTopic">نسخ</button></div>
+ <a class="btn" id="subLink" href="#" style="text-decoration:none">اشترك في إشعارات السكن</a>
+ <button class="btn sec2" id="closeNtfy">تمام</button></div></div>
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { firebaseConfig, vapidKey, defaults as DEF } from "./config.js";
+import { firebaseConfig, defaults as DEF } from "./config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, doc, setDoc, getDoc, deleteDoc, collection, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 const TASKS=[
  ["المطبخ",[["k1","غسل الصحون والقدور وترتيبها"],["k2","مسح الرخام وسطح المطبخ"],["k3","تنظيف الموقد (الغاز) والفرن من الخارج"],["k4","تنظيف المغسلة والحنفية"],["k5","مسح الطاولة والكراسي"]]],
@@ -201,7 +203,8 @@ let house=(location.hash||"").replace(/^#(h=)?/,"").trim();
 if(/^[A-Za-z0-9_-]{12,}$/.test(house))LS.set("sakan_house",house);else house=LS.get("sakan_house")||"";
 const H=p=>"houses/"+house+"/"+p;
 
-let cfg={...DEF},me=LS.get("sakan_me"),logs={},photos={},fs=null,messaging=null,pending=false,online=false;
+let cfg={...DEF},me=LS.get("sakan_me"),logs={},photos={},fs=null,pending=false,online=false;
+const TOPIC="sakan-"+house;
 const pad=n=>String(n).padStart(2,"0");
 const key=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
@@ -282,7 +285,7 @@ const loading=new Set();
 function loadPhotos(ids){ids.forEach(id=>{if(photos[id]||loading.has(id)||!fs)return;loading.add(id);getDoc(doc(fs,H("photos/"+id))).then(s=>{if(s.exists()){photos[id]=s.data().data;renderAll()}}).catch(()=>{}).finally(()=>loading.delete(id))})}
 $("doneBtn").onclick=async()=>{const L=logs[key(today())]||{};if(!(L.photos||[]).length)return;pending=true;renderAll();
  const ok=await queue(()=>writeToday({done:true,doneAt:new Date().toISOString(),doneBy:me||"",notified:false,note:$("noteIn").value.slice(0,500)}));
- pending=false;renderAll();if(ok)toast("يعطيك العافية! ✅ بيوصل إشعار للكل")};
+ pending=false;renderAll();if(ok){toast("يعطيك العافية! ✅ وصل إشعار للكل");const L2=logs[key(today())]||{};push("✅ تمّت النظافة",`${me||L2.who||whoOn(today())} خلّص نظافة اليوم ووثّقها بـ ${(L2.photos||[]).length} صور`,["white_check_mark"])}};
 function openImg(src){if(!src)return;$("bigImg").src=src;$("imgModal").classList.add("open")}
 $("closeImg").onclick=()=>$("imgModal").classList.remove("open");
 $("imgModal").onclick=e=>{if(e.target.id==="imgModal")$("imgModal").classList.remove("open")};
@@ -322,31 +325,22 @@ function renderSet(){
  $("ordList").innerHTML=draft.map((n,i)=>`<div class="ord"><b>${ar(i+1)}</b><span style="flex:1">${n}</span><button data-u="${i}">↑</button><button data-d="${i}">↓</button></div>`).join("");
  $("ordList").querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>mv(+b.dataset.u,-1));
  $("ordList").querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>mv(+b.dataset.d,1));
- const st=("Notification" in window)?Notification.permission:"unsupported";
- $("notifState").innerHTML=LS.get("sakan_token")&&st==="granted"?'<span class="ok-line">✓ الإشعارات مفعّلة على هذا الجوال</span>':st==="denied"?"الإشعارات مرفوضة من إعدادات المتصفح — فعّلها من إعدادات الموقع.":"الإشعارات غير مفعّلة على هذا الجوال.";
- $("notifCard").classList.toggle("hide",!!(LS.get("sakan_token")&&st==="granted")||!house);
+ const on=!!LS.get("sakan_ntfy");
+ $("notifState").innerHTML=on?'<span class="ok-line">✓ فعّلت الإشعارات على هذا الجوال</span>':"الإشعارات تجي عن طريق تطبيق ntfy المجاني.";
+ $("notifCard").classList.toggle("hide",on||!house);
 }
 function mv(i,dir){const j=i+dir;if(j<0||j>=draft.length)return;[draft[i],draft[j]]=[draft[j],draft[i]];renderSet()}
 $("saveCfg").onclick=async()=>{const c={start:$("startIn").value||cfg.start,order:draft,hour:+$("hourIn").value||9};try{await setDoc(doc(fs,H("config/rota")),c);cfg=c;renderAll();toast("تم الحفظ ✓")}catch(e){toast("تعذّر الحفظ")}};
-function setMe(n){me=n;LS.set("sakan_me",n);renderAll();if(LS.get("sakan_token"))saveToken(LS.get("sakan_token"))}
+function setMe(n){me=n;LS.set("sakan_me",n);renderAll()}
 $("copyLink").onclick=async()=>{const u=location.origin+location.pathname+"#"+house;try{await navigator.clipboard.writeText(u);toast("تم نسخ الرابط ✓")}catch(e){prompt("انسخ الرابط:",u)}};
 
-// ---------- notifications (FCM)
-const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent),standalone=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;
-async function enableNotif(){
- if(!me){toast("اختر اسمك أول");show("set");return}
- if(isIOS&&!standalone){$("iosModal").classList.add("open");return}
- if(!("Notification" in window)||!(await isSupported().catch(()=>false))){toast("المتصفح هذا ما يدعم الإشعارات");return}
- const p=await Notification.requestPermission();if(p!=="granted"){toast("ما تم السماح بالإشعارات");renderSet();return}
- try{const swUrl="firebase-messaging-sw.js?cfg="+encodeURIComponent(JSON.stringify(firebaseConfig));
-  const reg=await navigator.serviceWorker.register(swUrl);
-  const t=await getToken(messaging,{vapidKey,serviceWorkerRegistration:reg});
-  if(!t)throw new Error("no token");await saveToken(t);toast("✓ تم تفعيل الإشعارات")}
- catch(e){console.error(e);toast("تعذّر تفعيل الإشعارات")}
- renderSet();
-}
-async function saveToken(t){LS.set("sakan_token",t);try{await setDoc(doc(fs,H("tokens/"+t.slice(0,140).replace(/[^A-Za-z0-9_-]/g,"_"))),{token:t,name:me||"",at:new Date().toISOString(),ua:navigator.userAgent.slice(0,120)})}catch(e){console.error(e)}}
-$("notifBtn").onclick=enableNotif;$("notifBtn2").onclick=enableNotif;$("closeIos").onclick=()=>$("iosModal").classList.remove("open");
+// ---------- notifications (ntfy.sh — free push, no accounts)
+function openNtfy(){$("topicTxt").textContent=TOPIC;$("subLink").href="ntfy://ntfy.sh/"+TOPIC;$("ntfyModal").classList.add("open")}
+$("notifBtn").onclick=openNtfy;$("notifBtn2").onclick=openNtfy;
+$("notifDone").onclick=()=>{LS.set("sakan_ntfy","1");renderSet();toast("تمام ✓")};
+$("closeNtfy").onclick=()=>$("ntfyModal").classList.remove("open");
+$("copyTopic").onclick=async()=>{try{await navigator.clipboard.writeText(TOPIC);toast("تم النسخ ✓")}catch(e){toast(TOPIC)}};
+async function push(title,message,tags){try{await fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic:TOPIC,title,message,tags,click:location.origin+location.pathname})})}catch(e){}}
 
 function renderAll(){renderToday();renderSched();renderHist();renderSet()}
 
@@ -358,7 +352,6 @@ else{
  else{
   const app=initializeApp(firebaseConfig);
   fs=initializeFirestore(app,{localCache:persistentLocalCache()});
-  isSupported().then(s=>{if(s)messaging=getMessaging(app)}).catch(()=>{});
   const auth=getAuth(app);
   const timer=setTimeout(()=>note("ما قدرنا نوصل للبيانات بعد… تأكد من الإنترنت."),10000);
   signInAnonymously(auth).catch(e=>{clearTimeout(timer);note("تعذّر الاتصال: "+(e.code||""),true)});
@@ -367,7 +360,6 @@ else{
    const from=key(addDays(today(),-35));
    onSnapshot(query(collection(fs,H("logs")),where("date",">=",from)),s=>{if(!s.metadata.fromCache){clearTimeout(timer);note("")}const m={};s.docs.forEach(x=>m[x.id]=x.data());logs=m;renderAll()},e=>{clearTimeout(timer);note("انقطع الاتصال بالبيانات.",true);console.error(e)});
    renderAll();
-   if(messaging)onMessage(messaging,p=>toast((p.notification&&p.notification.title)||"تنبيه"));
   });
  }
 }
