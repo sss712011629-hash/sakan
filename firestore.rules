@@ -2,10 +2,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Everything lives under houses/<secret house code>/...
-    // Only someone with the house link (the code) and the app's anonymous sign-in can reach it.
-    // Listing all houses is not allowed, so the code cannot be discovered.
-    match /houses/{house}/{rest=**} {
-      allow read, write: if request.auth != null && house.size() >= 16;
+    match /houses/{h} {
+      function ok() { return request.auth != null && h.size() >= 16; }
+      function isAdmin() { return exists(/databases/$(database)/documents/houses/$(h)/admins/$(request.auth.uid)); }
+
+      match /logs/{d}    { allow read, write: if ok(); }
+      match /photos/{p}  { allow read, write: if ok(); }
+      // Only the owner (admin) may change the rota
+      match /config/{c}  { allow read: if ok(); allow write: if ok() && isAdmin(); }
+      // Becoming admin needs the secret admin code (stored in private/, unreadable by clients)
+      match /admins/{uid} {
+        allow read: if ok() && request.auth.uid == uid;
+        allow create: if ok() && request.auth.uid == uid
+          && request.resource.data.code == get(/databases/$(database)/documents/houses/$(h)/private/admin).data.code;
+      }
+      match /private/{x} { allow read, write: if false; }
     }
   }
 }

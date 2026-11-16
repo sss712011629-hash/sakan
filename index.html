@@ -143,8 +143,8 @@ input[type=date],select{font:500 15px "Readex Pro";border:1px solid var(--line);
    <div class="small" id="notifState" style="margin-bottom:10px"></div>
    <button class="btn sec2" id="notifBtn2">طريقة تفعيل الإشعارات</button>
   </div>
-  <div class="card">
-   <h2>ترتيب الأدوار</h2>
+  <div class="card hide" id="rotaCard">
+   <h2>ترتيب الأدوار <span class="pill p-today">للمشرف فقط</span></h2>
    <label class="small">أول يوم في الجدول: </label><input type="date" id="startIn"><br><br>
    <div id="ordList"></div><br>
    <label class="small">ساعة التنبيه الصباحي: </label><select id="hourIn"></select>
@@ -199,8 +199,10 @@ const DAYS=["الأحد","الإثنين","الثلاثاء","الأربعاء",
 const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
 // ---------- house code (from link #CODE, then remembered)
-let house=(location.hash||"").replace(/^#(h=)?/,"").trim();
-if(/^[A-Za-z0-9_-]{12,}$/.test(house))LS.set("sakan_house",house);else house=LS.get("sakan_house")||"";
+let [house,adminCode]=(location.hash||"").replace(/^#(h=)?/,"").trim().split("~");
+if(/^[A-Za-z0-9_-]{12,}$/.test(house||""))LS.set("sakan_house",house);else house=LS.get("sakan_house")||"";
+if(adminCode){try{history.replaceState(null,"",location.pathname+"#"+house)}catch(e){}}
+let isAdmin=false;
 const H=p=>"houses/"+house+"/"+p;
 
 let cfg={...DEF},me=LS.get("sakan_me"),logs={},photos={},fs=null,pending=false,online=false;
@@ -319,6 +321,7 @@ document.querySelector('nav [data-v="hist"]').addEventListener("click",()=>setTi
 let draft=[...cfg.order],cfgInit=false;
 function renderSet(){
  $("whoBtn").textContent="أنا: "+(me||"—");
+ $("rotaCard").classList.toggle("hide",!isAdmin);
  $("meNames").innerHTML=cfg.order.map(n=>`<button class="${n===me?"sel":""}" data-n="${n}">${n}</button>`).join("");
  $("meNames").querySelectorAll("button").forEach(b=>b.onclick=()=>setMe(b.dataset.n));
  if(!cfgInit){cfgInit=true;draft=[...cfg.order];$("startIn").value=cfg.start;$("hourIn").innerHTML=Array.from({length:17},(_,i)=>i+5).map(h=>`<option value="${h}">${ar(h)}:٠٠</option>`).join("");$("hourIn").value=cfg.hour}
@@ -330,7 +333,7 @@ function renderSet(){
  $("notifCard").classList.toggle("hide",on||!house);
 }
 function mv(i,dir){const j=i+dir;if(j<0||j>=draft.length)return;[draft[i],draft[j]]=[draft[j],draft[i]];renderSet()}
-$("saveCfg").onclick=async()=>{const c={start:$("startIn").value||cfg.start,order:draft,hour:+$("hourIn").value||9};try{await setDoc(doc(fs,H("config/rota")),c);cfg=c;renderAll();toast("تم الحفظ ✓")}catch(e){toast("تعذّر الحفظ")}};
+$("saveCfg").onclick=async()=>{const c={start:$("startIn").value||cfg.start,order:draft,hour:+$("hourIn").value||9};try{await setDoc(doc(fs,H("config/rota")),c);cfg=c;renderAll();toast("تم الحفظ ✓")}catch(e){toast("ما عندك صلاحية تغيير الترتيب")}};
 function setMe(n){me=n;LS.set("sakan_me",n);renderAll()}
 $("copyLink").onclick=async()=>{const u=location.origin+location.pathname+"#"+house;try{await navigator.clipboard.writeText(u);toast("تم نسخ الرابط ✓")}catch(e){prompt("انسخ الرابط:",u)}};
 
@@ -355,7 +358,10 @@ else{
   const auth=getAuth(app);
   const timer=setTimeout(()=>note("ما قدرنا نوصل للبيانات بعد… تأكد من الإنترنت."),10000);
   signInAnonymously(auth).catch(e=>{clearTimeout(timer);note("تعذّر الاتصال: "+(e.code||""),true)});
-  onAuthStateChanged(auth,u=>{if(!u||online)return;online=true;
+  onAuthStateChanged(auth,async u=>{if(!u||online)return;online=true;
+   const aRef=doc(fs,H("admins/"+u.uid));
+   if(adminCode){try{await setDoc(aRef,{code:adminCode,at:new Date().toISOString()});toast("✓ صرت المشرف على هذا الجهاز")}catch(e){}}
+   try{isAdmin=(await getDoc(aRef)).exists()}catch(e){isAdmin=false}
    onSnapshot(doc(fs,H("config/rota")),s=>{if(s.exists()){const c=s.data();cfg={start:c.start||DEF.start,order:Array.isArray(c.order)&&c.order.length===4?c.order:DEF.order,hour:c.hour||9};cfgInit=false}renderAll()},()=>{});
    const from=key(addDays(today(),-35));
    onSnapshot(query(collection(fs,H("logs")),where("date",">=",from)),s=>{if(!s.metadata.fromCache){clearTimeout(timer);note("")}const m={};s.docs.forEach(x=>m[x.id]=x.data());logs=m;renderAll()},e=>{clearTimeout(timer);note("انقطع الاتصال بالبيانات.",true);console.error(e)});
